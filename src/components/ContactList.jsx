@@ -1,15 +1,13 @@
-// ContactList.jsx
-import React from "react";
 import { useSelector } from "react-redux";
-import { selectFilteredContacts } from "../redux/contactsSlice";
+import { selectContacts } from "../redux/contactsSlice";
 import Contact from "./Contact";
 
 export default function ContactList({ handleDelete }) {
-  const filteredContacts = useSelector(selectFilteredContacts);
+  const contacts = useSelector(selectContacts);
 
   return (
     <ul>
-      {filteredContacts.map((contact) => (
+      {contacts.map((contact) => (
         <Contact
           key={contact.id}
           contact={contact}
