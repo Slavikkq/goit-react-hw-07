@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  fetchContacts,
   addContact,
   deleteContact,
-  selectContacts,
 } from "./redux/contactsSlice";
 import { changeFilter, selectNameFilter } from "./redux/filtersSlice";
 import ContactForm from "./components/ContactForm";
@@ -11,35 +12,31 @@ import ContactList from "./components/ContactList";
 
 export default function App() {
   const dispatch = useDispatch();
-  const contacts = useSelector(selectContacts);
+  const contacts = useSelector((state) => state.contacts.items);
   const searchTerm = useSelector(selectNameFilter);
 
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
+
   const handleAddContact = (values) => {
-    const newContact = { ...values, id: Math.random().toString() };
-    dispatch(addContact(newContact));
+    dispatch(addContact(values));
   };
 
   const handleDeleteContact = (id) => {
     dispatch(deleteContact(id));
   };
 
-  const handleSearch = (event) => {
-    dispatch(changeFilter(event.target.value));
+  const handleSearch = (searchTerm) => {
+    dispatch(changeFilter(searchTerm));
   };
-
-  const filteredContacts = contacts.filter((contact) =>
-    contact.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div>
       <h1>Phonebook</h1>
       <ContactForm handleSubmit={handleAddContact} />
       <SearchBox handleSearch={handleSearch} />
-      <ContactList
-        contacts={filteredContacts}
-        handleDelete={handleDeleteContact}
-      />
+      <ContactList contacts={contacts} handleDelete={handleDeleteContact} />
     </div>
   );
 }
