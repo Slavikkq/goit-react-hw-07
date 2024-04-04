@@ -13,7 +13,6 @@ import ContactList from "./components/ContactList";
 export default function App() {
   const dispatch = useDispatch();
   const contacts = useSelector((state) => state.contacts.items);
-  const searchTerm = useSelector(selectNameFilter);
 
   useEffect(() => {
     dispatch(fetchContacts());

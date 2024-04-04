@@ -1,5 +1,29 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import * as api from "../contactsApi";
+
+export const fetchContacts = createAsyncThunk(
+  "contacts/fetchContacts",
+  async () => {
+    const response = await api.fetchContacts();
+    return response.data;
+  }
+);
+
+export const addContact = createAsyncThunk(
+  "contacts/addContact",
+  async (contactData) => {
+    const response = await api.addContact(contactData);
+    return response.data;
+  }
+);
+
+export const deleteContact = createAsyncThunk(
+  "contacts/deleteContact",
+  async (id) => {
+    await api.deleteContact(id);
+    return id;
+  }
+);
 
 const contactsSlice = createSlice({
   name: "contacts",
@@ -10,73 +34,58 @@ const contactsSlice = createSlice({
     searchResults: [],
   },
   reducers: {
-    addContactSuccess(state, action) {
-      state.items.push(action.payload);
+    setSearchResults: (state, action) => {
+      state.searchResults = action.payload;
     },
-    deleteContactSuccess(state, action) {
-      state.items = state.items.filter(
-        (contact) => contact.id !== action.payload
-      );
-    },
-    fetchContactsStart(state) {
-      state.loading = true;
-      state.error = null;
-    },
-    fetchContactsSuccess(state, action) {
-      state.loading = false;
-      state.items = action.payload;
-    },
-    fetchContactsFailure(state, action) {
-      state.loading = false;
-      state.error = action.payload;
-    },
-    searchContacts(state, action) {
-      const searchTerm = action.payload.toLowerCase();
-      state.searchResults = state.items.filter((contact) =>
-        contact.name.toLowerCase().includes(searchTerm)
-      );
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchContacts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchContacts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+      })
+      .addCase(fetchContacts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(addContact.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addContact.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items.push(action.payload);
+      })
+      .addCase(addContact.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(deleteContact.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteContact.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = state.items.filter(
+          (contact) => contact.id !== action.payload
+        );
+      })
+      .addCase(deleteContact.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      });
   },
 });
 
-export const {
-  addContactSuccess,
-  deleteContactSuccess,
-  fetchContactsStart,
-  fetchContactsSuccess,
-  fetchContactsFailure,
-  searchContacts,
-} = contactsSlice.actions;
+export const { setSearchResults } = contactsSlice.actions;
 
 export const selectContacts = (state) => state.contacts.items;
+export const selectLoading = (state) => state.contacts.loading;
+export const selectError = (state) => state.contacts.error;
 export const selectSearchResults = (state) => state.contacts.searchResults;
-
-export const fetchContacts = () => async (dispatch) => {
-  dispatch(fetchContactsStart());
-  try {
-    const contacts = await api.fetchContacts();
-    dispatch(fetchContactsSuccess(contacts));
-  } catch (error) {
-    dispatch(fetchContactsFailure(error));
-  }
-};
-
-export const addContact = (contactData) => async (dispatch) => {
-  try {
-    const newContact = await api.addContact(contactData);
-    dispatch(addContactSuccess(newContact));
-  } catch (error) {
-    console.error("Error adding contact:", error);
-  }
-};
-
-export const deleteContact = (id) => async (dispatch) => {
-  try {
-    await api.deleteContact(id);
-    dispatch(deleteContactSuccess(id));
-  } catch (error) {
-    console.error("Error deleting contact:", error);
-  }
-};
 
 export default contactsSlice.reducer;

@@ -1,6 +1,7 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useDispatch } from "react-redux";
+import { addContact } from "../redux/contactsSlice";
 
 export default function ContactForm() {
   const phoneRegExp = /^\d{10}$/;
